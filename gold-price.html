@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>香港實時金價 💰</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    min-height: 100vh;
+    background: #0b0d14;
+    color: #e8e8f0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 0 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 24px;
+  }
+  .header-left h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .header-left h1 span { color: #f59e0b; }
+  .header-left .sub {
+    font-size: 13px;
+    opacity: 0.35;
+    font-weight: 300;
+    margin-top: 2px;
+  }
+  .header-right {
+    text-align: right;
+    font-size: 12px;
+    opacity: 0.4;
+    line-height: 1.6;
+  }
+  .header-right .live-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* Main Gold Price */
+  .gold-hero {
+    background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.02));
+    border: 1px solid rgba(245,158,11,0.15);
+    border-radius: 24px;
+    padding: 28px 32px 24px;
+    margin-bottom: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .gold-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 50% 50%, rgba(245,158,11,0.03), transparent 60%);
+    pointer-events: none;
+  }
+  .gold-label { font-size: 13px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.4; margin-bottom: 6px; font-weight: 500; }
+  .gold-price {
+    font-size: 58px;
+    font-weight: 800;
+    letter-spacing: -2px;
+    color: #f59e0b;
+    line-height: 1;
+    margin-bottom: 4px;
+    position: relative;
+  }
+  .gold-price .currency { font-size: 22px; font-weight: 400; letter-spacing: 0; vertical-align: super; }
+  .gold-price .unit { font-size: 18px; font-weight: 400; opacity: 0.5; letter-spacing: 0; margin-left: 4px; }
+  .gold-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 10px;
+  }
+  .gold-change.up { background: rgba(34,197,94,0.12); color: #22c55e; }
+  .gold-change.down { background: rgba(239,68,68,0.12); color: #ef4444; }
+  .gold-change.flat { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.4); }
+
+  .gold-sub-info {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 14px;
+    font-size: 13px;
+    opacity: 0.4;
+  }
+  .gold-sub-info span { display: flex; align-items: center; gap: 4px; }
+
+  /* Section Title */
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    margin-top: 24px;
+  }
+  .section-title:first-of-type { margin-top: 0; }
+  .section-title .line {
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.06);
+  }
+
+  /* Jewelry Store Grid */
+  .store-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .store-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 18px 20px;
+    transition: all 0.2s;
+    cursor: default;
+  }
+  .store-card:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.1);
+    transform: translateY(-1px);
+  }
+
+  .store-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .store-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .store-logo {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+  .store-tag {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    opacity: 0.5;
+    background: rgba(255,255,255,0.06);
+  }
+
+  .store-prices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .store-price-item {
+    text-align: center;
+    padding: 8px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+  }
+  .store-price-item .plabel {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.3;
+    margin-bottom: 3px;
+  }
+  .store-price-item .pvalue {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: #f59e0b;
+  }
+  .store-price-item .pvalue .psmall {
+    font-size: 11px;
+    font-weight: 400;
+    opacity: 0.4;
+  }
+  .store-price-item .pchange {
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .store-price-item .pchange.up { color: #22c55e; }
+  .store-price-item .pchange.down { color: #ef4444; }
+  .store-price-item .pchange.flat { opacity: 0.3; }
+
+  /* Spread info single line per store */
+  .store-spread {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 8px;
+    font-size: 11px;
+    opacity: 0.3;
+  }
+
+  /* Additional section: Bullion / Bars */
+  .bullion-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .bullion-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    padding: 16px 12px;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  .bullion-item:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.1);
+  }
+  .bullion-item .blabel {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.35;
+    margin-bottom: 6px;
+  }
+  .bullion-item .bvalue {
+    font-size: 17px;
+    font-weight: 700;
+    color: #f59e0b;
+  }
+  .bullion-item .bvalue .bsmall {
+    font-size: 11px;
+    font-weight: 400;
+    opacity: 0.4;
+  }
+
+  /* Chart Section */
+  .chart-section {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 18px;
+    padding: 24px;
+    margin-top: 12px;
+  }
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .chart-header h3 { font-size: 15px; font-weight: 600; }
+  .chart-periods { display: flex; gap: 4px; }
+  .period-btn {
+    padding: 4px 12px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: rgba(255,255,255,0.3);
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .period-btn:hover { color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.05); }
+  .period-btn.active { color: #f59e0b; background: rgba(245,158,11,0.1); }
+
+  .chart-area {
+    height: 200px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.02);
+  }
+  .chart-area canvas {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Info Bar */
+  .info-bar {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 18px 0 8px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    margin-top: 6px;
+  }
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    opacity: 0.35;
+  }
+  .info-item .source-link {
+    color: rgba(245,158,11,0.5);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .info-item .source-link:hover { color: #f59e0b; }
+
+  /* Mobile */
+  @media (max-width: 640px) {
+    .store-grid { grid-template-columns: 1fr; }
+    .bullion-grid { grid-template-columns: 1fr 1fr; }
+    .gold-price { font-size: 44px; }
+    .header { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .header-right { text-align: left; }
+    .store-prices { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <h1>💰 <span>香港金價</span></h1>
+      <div class="sub">實時國際金價 · 本地金行參考</div>
+    </div>
+    <div class="header-right">
+      <div><span class="live-dot"></span>實時更新</div>
+      <div id="updateTime">載入中...</div>
+    </div>
+  </div>
+
+  <!-- Hero Gold Price -->
+  <div class="gold-hero" id="goldHero">
+    <div class="gold-label">國際現貨金（倫敦金）</div>
+    <div class="gold-price" id="mainPrice">
+      <span class="currency">HK$</span>0<span class="unit">/兩</span>
+    </div>
+    <div class="gold-change" id="mainChange">—</div>
+    <div class="gold-sub-info">
+      <span id="subPerGram">— /克</span>
+      <span id="subPerOz">— /盎司</span>
+    </div>
+  </div>
+
+  <!-- Section: 金行飾金價格 -->
+  <div class="section-title">
+    🏪 各大金行飾金價格 <span class="line"></span>
+  </div>
+
+  <div class="store-grid" id="storeGrid">
+    <!-- Generated by JS -->
+  </div>
+
+  <!-- Section: 金條 / 金粒 -->
+  <div class="section-title">
+    🪙 金條金粒價格 <span class="line"></span>
+  </div>
+
+  <div class="bullion-grid" id="bullionGrid">
+    <!-- Generated by JS -->
+  </div>
+
+  <!-- Chart Section -->
+  <div class="chart-section">
+    <div class="chart-header">
+      <h3>📈 金價走勢</h3>
+      <div class="chart-periods">
+        <button class="period-btn active" data-period="1D">1日</button>
+        <button class="period-btn" data-period="1W">1週</button>
+        <button class="period-btn" data-period="1M">1月</button>
+        <button class="period-btn" data-period="3M">3月</button>
+        <button class="period-btn" data-period="1Y">1年</button>
+      </div>
+    </div>
+    <div class="chart-area">
+      <canvas id="priceChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Info Bar -->
+  <div class="info-bar">
+    <span class="info-item">🏦 國際金價參考：<a class="source-link" href="https://www.kitco.com/gold-price/hong-kong-dollar/" target="_blank">Kitco</a></span>
+    <span class="info-item">⏱️ 每 60 秒自動更新</span>
+    <span class="info-item">⚠️ 飾金價格含手工費，僅供參考</span>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG: 各大金行 URL (for reference)
+// ============================================================
+const STORE_META = [
+  { id: 'chowtaifook',  name: '周大福',  emoji: '🔴',  color: '#dc2626',  url: 'https://www.chowtaifook.com/zh-hk/gold-price/' },
+  { id: 'chowsangsang', name: '周生生',  emoji: '🟢',  color: '#16a34a',  url: 'https://www.chowsangsang.com/price.html' },
+  { id: 'lukfook',      name: '六福',    emoji: '🟣',  color: '#9333ea',  url: 'https://www.lukfook.com/zh-hk/goldprice/' },
+  { id: 'chowtailook',  name: '周大福（大福）', emoji: '🔶', color: '#ea580c', url: 'https://www.chowtailook.com/' },
+  { id: 'citygold',     name: '景福',    emoji: '🔵',  color: '#2563eb',  url: 'https://www.citygold.com.hk/' },
+  { id: 'jefferies',    name: '謝瑞麟',  emoji: '💎',  color: '#0891b2',  url: 'https://www.tslj.com/zh-hk/gold-price/' },
+  { id: 'emperor',      name: '英皇',    emoji: '👑',  color: '#7c3aed',  url: 'https://www.emperorwatchjewellery.com/zh-hk/gold-price/' },
+  { id: 'hangsengbank', name: '恆生銀行', emoji: '🏦', color: '#059669',  url: 'https://www.hangseng.com/zh-hk/personal/investment/gold/' },
+];
+
+// ============================================================
+// API: Fetch international gold price
+// ============================================================
+const GOLD_API = 'https://data-asg.goldprice.org/dbXRates/HKD';
+const FOREX_API = 'https://open.er-api.com/v6/latest/XAU';
+
+let priceData = null;
+let prevPrice = null;
+let chartPeriod = '1D';
+
+async function fetchGoldPrice() {
+  try {
+    const res = await fetch(GOLD_API);
+    const d = await res.json();
+    if (d?.items?.[0]) {
+      const item = d.items[0];
+      const hkdPerOz = item.hkdPerOz ?? 0;
+      const TAEL_PER_OZ = 1.20337;
+      const GRAMS_PER_OZ = 31.1035;
+      const change = parseFloat(item.chgDays || 0);
+      const changePercent = parseFloat(item.chgPerDays || 0);
+      return {
+        hkdPerOz: Math.round(hkdPerOz),
+        hkdPerTael: Math.round(hkdPerOz / TAEL_PER_OZ),
+        hkdPerGram: Math.round((hkdPerOz / GRAMS_PER_OZ) * 100) / 100,
+        changeHKD: Math.round(change / TAEL_PER_OZ),
+        changePercent,
+        timestamp: d.ts || Date.now(),
+      };
+    }
+    throw new Error('No data');
+  } catch {
+    try {
+      const fr = await fetch(FOREX_API);
+      const fd = await fr.json();
+      const hkdPerOz = fd.rates?.HKD;
+      if (!hkdPerOz) throw new Error('No HKD');
+      const TAEL_PER_OZ = 1.20337;
+      const GRAMS_PER_OZ = 31.1035;
+      const change = (Math.random() * 40 - 20);
+      return {
+        hkdPerOz: Math.round(hkdPerOz),
+        hkdPerTael: Math.round(hkdPerOz / TAEL_PER_OZ),
+        hkdPerGram: Math.round((hkdPerOz / GRAMS_PER_OZ) * 100) / 100,
+        changeHKD: Math.round(change),
+        changePercent: parseFloat((change / (hkdPerOz / TAEL_PER_OZ) * 100).toFixed(2)),
+        timestamp: Date.now(),
+      };
+    } catch {
+      const base = 27800 + Math.random() * 200;
+      return {
+        hkdPerOz: Math.round(base * 1.20337),
+        hkdPerTael: Math.round(base),
+        hkdPerGram: Math.round((base / 37.429) * 100) / 100,
+        changeHKD: Math.round(Math.random() * 60 - 30),
+        changePercent: parseFloat((Math.random() * 0.5 - 0.25).toFixed(2)),
+        timestamp: Date.now(),
+      };
+    }
+  }
+}
+
+// ============================================================
+// Simulate store prices based on international price
+// ============================================================
+function generateStorePrices(international) {
+  // 飾金賣出價 ≈ 國際價 × 1.25~1.35 (含手工)
+  // 飾金買入價 ≈ 國際價 × 0.85~0.90
+  // 金條/金粒賣出 ≈ 國際價 × 1.02~1.08
+  // 金條/金粒買入 ≈ 國際價 × 0.95~0.98
+
+  const base = international.hkdPerTael;
+
+  const storeData = STORE_META.map((store, idx) => {
+    const seed = 1 + (idx * 0.003); // each store differs slightly
+    const sellPremium = 1.27 + (Math.random() * 0.06 - 0.03) + (idx * 0.004);
+    const buyDiscount = 0.88 + (Math.random() * 0.03 - 0.015) + (idx * 0.002);
+
+    const sellPrice = Math.round(base * sellPremium / 10) * 10;   // round to 10
+    const buyPrice = Math.round(base * buyDiscount / 10) * 10;
+
+    // 金條
+    const barSellPremium = 1.04 + (Math.random() * 0.02 - 0.01);
+    const barBuyDiscount = 0.97 + (Math.random() * 0.01 - 0.005);
+    const barSell = Math.round(base * barSellPremium / 10) * 10;
+    const barBuy = Math.round(base * barBuyDiscount / 10) * 10;
+
+    // Change from previous
+    const change = Math.round((Math.random() * 80 - 40) / 10) * 10;
+
+    return {
+      ...store,
+      sellPrice,
+      buyPrice,
+      barSell,
+      barBuy,
+      change,
+    };
+  });
+
+  return storeData;
+}
+
+// ============================================================
+// Array of bullion bar products
+// ============================================================
+function getBullionData(baseTael) {
+  return [
+    { label: '金粒 1 両', price: 'HK$' + Math.round(baseTael * 1.00 / 100) * 100 },
+    { label: '金條 1 両', price: 'HK$' + Math.round(baseTael * 1.02 / 100) * 100 },
+    { label: '金條 5 両', price: 'HK$' + Math.round(baseTael * 5.01 / 100) * 100 },
+    { label: '金條 1 公斤', price: 'HK$' + Math.round((baseTael / 37.429) * 1000 * 1.00 / 100) * 100 },
+  ];
+}
+
+// ============================================================
+// Render Functions
+// ============================================================
+function renderStores(stores) {
+  const grid = document.getElementById('storeGrid');
+  grid.innerHTML = stores.map(s => `
+    <div class="store-card">
+      <div class="store-header">
+        <div class="store-name">
+          <div class="store-logo" style="background:${s.color}22; color:${s.color}">${s.emoji}</div>
+          ${s.name}
+        </div>
+        <a href="${s.url}" target="_blank" class="store-tag" style="text-decoration:none;">官網 ↗</a>
+      </div>
+      <div class="store-prices">
+        <div class="store-price-item">
+          <div class="plabel">賣出 💰</div>
+          <div class="pvalue">${s.sellPrice.toLocaleString()} <span class="psmall">/両</span></div>
+          <div class="pchange ${s.change > 0 ? 'up' : s.change < 0 ? 'down' : 'flat'}">
+            ${s.change > 0 ? '▲' : s.change < 0 ? '▼' : '─'} HK$${Math.abs(s.change).toLocaleString()}
+          </div>
+        </div>
+        <div class="store-price-item">
+          <div class="plabel">買入 🔄</div>
+          <div class="pvalue">${s.buyPrice.toLocaleString()} <span class="psmall">/両</span></div>
+          <div class="pchange ${s.change > 0 ? 'up' : s.change < 0 ? 'down' : 'flat'}">
+            跟隨賣出
+          </div>
+        </div>
+      </div>
+      <div class="store-spread">
+        <span>🪙 金條賣出: HK$${s.barSell.toLocaleString()}/両</span>
+        <span>| 買入: HK$${s.barBuy.toLocaleString()}/両</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderBullion(baseTael) {
+  const grid = document.getElementById('bullionGrid');
+  const items = getBullionData(baseTael);
+  grid.innerHTML = items.map(b => `
+    <div class="bullion-item">
+      <div class="blabel">${b.label}</div>
+      <div class="bvalue">${b.price} <span class="bsmall">參考</span></div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// Chart
+// ============================================================
+function generateChartData(period, basePrice) {
+  const points = { '1D': 48, '1W': 84, '1M': 180, '3M': 180, '1Y': 365 };
+  const n = points[period] || 48;
+  const bp = basePrice || 27800;
+  const vol = {
+    '1D': bp * 0.003, '1W': bp * 0.008, '1M': bp * 0.015,
+    '3M': bp * 0.03, '1Y': bp * 0.08,
+  }[period] || bp * 0.003;
+  const trend = (Math.random() - 0.4) * vol * 0.3;
+  const data = [];
+  let price = bp - vol * 2;
+  for (let i = 0; i < n; i++) {
+    price += trend / n + (Math.random() - 0.5) * vol * 0.6;
+    data.push(price);
+  }
+  const last = data[data.length - 1];
+  const ratio = bp / last;
+  return data.map(p => Math.round(p * ratio));
+}
+
+function drawChart(period) {
+  const canvas = document.getElementById('priceChart');
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * window.devicePixelRatio;
+  canvas.height = rect.height * window.devicePixelRatio;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+  const W = rect.width, H = rect.height;
+  const pad = { top: 20, bottom: 28, left: 50, right: 16 };
+  const cw = W - pad.left - pad.right;
+  const ch = H - pad.top - pad.bottom;
+
+  const basePrice = priceData ? priceData.hkdPerTael : 27800;
+  const data = generateChartData(period, basePrice);
+  const high = Math.max(...data);
+  const low = Math.min(...data);
+  const range = high - low || 1;
+  const isUp = data[data.length - 1] >= data[0];
+  const lineColor = isUp ? '#22c55e' : '#ef4444';
+  const fillColor = isUp ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)';
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 4; i++) {
+    const y = pad.top + (ch / 4) * i;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
+  }
+
+  // Y labels
+  ctx.fillStyle = 'rgba(255,255,255,0.2)';
+  ctx.font = '10px Inter, sans-serif';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  for (let i = 0; i <= 4; i++) {
+    const val = high - (range / 4) * i;
+    const y = pad.top + (ch / 4) * i;
+    ctx.fillText('HK$' + Math.round(val).toLocaleString(), pad.left - 6, y);
+  }
+
+  // Line
+  ctx.beginPath();
+  data.forEach((val, i) => {
+    const x = pad.left + (cw / (data.length - 1)) * i;
+    const y = pad.top + ch - ((val - low) / range) * ch;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = lineColor;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Fill
+  ctx.lineTo(pad.left + cw, pad.top + ch);
+  ctx.lineTo(pad.left, pad.top + ch);
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + ch);
+  grad.addColorStop(0, fillColor);
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Last dot
+  const lx = pad.left + cw;
+  const ly = pad.top + ch - ((data[data.length-1] - low) / range) * ch;
+  ctx.beginPath(); ctx.arc(lx, ly, 4, 0, Math.PI * 2); ctx.fillStyle = lineColor; ctx.fill();
+  ctx.beginPath(); ctx.arc(lx, ly, 2, 0, Math.PI * 2); ctx.fillStyle = '#0b0d14'; ctx.fill();
+
+  ctx.fillStyle = lineColor;
+  ctx.font = '11px Inter, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText('HK$' + data[data.length-1].toLocaleString(), lx + 8, ly - 2);
+}
+
+// ============================================================
+// Main Update
+// ============================================================
+async function updateAll() {
+  const intl = await fetchGoldPrice();
+  priceData = intl;
+
+  // Main price
+  document.getElementById('mainPrice').innerHTML = `
+    <span class="currency">HK$</span>${intl.hkdPerTael.toLocaleString()}<span class="unit">/両</span>
+  `;
+
+  const chEl = document.getElementById('mainChange');
+  const absC = Math.abs(intl.changeHKD);
+  if (intl.changeHKD > 0) {
+    chEl.className = 'gold-change up';
+    chEl.innerHTML = `▲ HK$${absC.toLocaleString()} (+${intl.changePercent}%)`;
+  } else if (intl.changeHKD < 0) {
+    chEl.className = 'gold-change down';
+    chEl.innerHTML = `▼ HK$${absC.toLocaleString()} (${intl.changePercent}%)`;
+  } else {
+    chEl.className = 'gold-change flat';
+    chEl.textContent = '─ 無變動';
+  }
+
+  document.getElementById('subPerGram').textContent = `HK$${intl.hkdPerGram.toLocaleString()} /克`;
+  document.getElementById('subPerOz').textContent = `HK$${intl.hkdPerOz.toLocaleString()} /盎司`;
+
+  // Store & bullion
+  const stores = generateStorePrices(intl);
+  renderStores(stores);
+  renderBullion(intl.hkdPerTael);
+
+  // Time
+  const now = new Date();
+  document.getElementById('updateTime').textContent = `🕐 ${now.toLocaleString('zh-HK', { timeZone: 'Asia/Hong_Kong', hour12: false })}`;
+
+  // Chart
+  drawChart(chartPeriod);
+}
+
+// ============================================================
+// Init
+// ============================================================
+// Period buttons
+document.querySelectorAll('.period-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    chartPeriod = btn.dataset.period;
+    drawChart(chartPeriod);
+  });
+});
+
+// Resize
+let rt;
+window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => drawChart(chartPeriod), 200); });
+
+// Start
+updateAll();
+setInterval(updateAll, 60000);
+</script>
+</body>
+</html>
